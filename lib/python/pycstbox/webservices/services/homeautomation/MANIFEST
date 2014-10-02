@@ -1,0 +1,4 @@
+[service]
+label=Home automation
+[settings]
+config_path=/etc/cstbox/home-automation-scenarios.cfg

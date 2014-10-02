@@ -1,0 +1,11 @@
+Package: cstbox-ext-home-automation
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: all
+Depends: cstbox-core, cstbox-ext-webservices
+Maintainer: Eric Pascual <eric.pascual@cstb.fr>
+Description: CSTBox home automation foundation extension module
+ This package provides the basics for developing application modules
+ dealing with home automation.
+

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# restarts the Web services server for the new package to be taken in account
+# if it is currently running
+if [ -e /var/run/cstbox/cstbox-webservices.pid ] ; then
+    echo "Restarting Web services API server"
+    service cstbox-webservices restart
+fi
