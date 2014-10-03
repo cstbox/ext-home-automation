@@ -7,7 +7,7 @@ import json
 
 from pycstbox.webservices.wsapp import WSHandler
 from pycstbox import log, sysutils, evtmgr
-from pycstbox.homeautomation.core import ScenariosManager
+from pycstbox.homeautomation.core import ScenariosManager, Scenario, BasicAction
 
 
 def _init_(logger=None, settings=None):
@@ -87,6 +87,30 @@ class ScenarioSettings(BaseHandler):
             else:
                 scenario.update(new_settings)
                 self._scenarios_mgr.save_scenarios()
+
+    def put(self, scenario_name):
+        if scenario_name in self._scenarios_mgr:
+            self.set_status(400)
+            self.write({
+                'message': 'duplicate scenario name (%s)' % scenario_name
+            })
+
+        else:
+            new_settings = json.loads(self.request.body)
+            scenario = Scenario(new_settings['label'], actions=[BasicAction.from_dict(d) for d in new_settings['actions']])
+            self._scenarios_mgr.add_scenario(scenario_name, scenario)
+            self._scenarios_mgr.save_scenarios()
+
+    def delete(self, scenario_name):
+        try:
+            self._scenarios_mgr.remove_scenario(scenario_name)
+        except KeyError:
+            self.set_status(404)
+            self.write({
+                'message': 'scenario not found : %s' % scenario_name
+            })
+        else:
+            self._scenarios_mgr.save_scenarios()
 
 
 class ScenarioExecution(BaseHandler):
