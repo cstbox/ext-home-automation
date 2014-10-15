@@ -10,6 +10,10 @@ import json
 
 
 class TestWebServices(unittest.TestCase):
+    """ WARNING
+
+    These tests are not really pure unit tests since they use a running CSTBox to be executed.
+    """
     URL_BASE = "http://cbx-virtual.local:8888/api/homeautomation"
     SCENARIO_CFG_FILE_PATH = os.path.join(os.path.dirname(__file__), 'fixtures', 'home-automation-scenarios.cfg')
 
@@ -23,7 +27,7 @@ class TestWebServices(unittest.TestCase):
 
         data = ReplyData(r.json())
         scenarios = data.scenarios
-        self.assertListEqual(sorted([item['name'] for item in scenarios]), ['s01', 's02'])
+        self.assertListEqual(sorted([id_ for id_, _ in scenarios]), ['s01', 's02'])
 
     def test02_get_scenario_settings(self):
         r = requests.get(self.URL_BASE + "/scenario/s01/settings")

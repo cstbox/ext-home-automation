@@ -35,6 +35,9 @@ class Scenario(Loggable):
 
     A scenario can be executed.
     """
+    KEY_LABEL = 'label'
+    KEY_ACTIONS = 'actions'
+
     def __init__(self, label, actions=None):
         """
         :param str label: a human readable label
@@ -95,8 +98,8 @@ class Scenario(Loggable):
 
     def as_dict(self):
         return {
-            'label': self._label,
-            'actions': [a._asdict() for a in self._actions]
+            self.KEY_LABEL: self._label,
+            self.KEY_ACTIONS: [a._asdict() for a in self._actions]
         }
 
     def update(self, d):
@@ -142,6 +145,10 @@ class BasicAction(namedtuple('BasicAction', 'verb target data label')):
             label = verb + ' ' + target + ' ' + cls._interpret_param(verb, data)
         return super(BasicAction, cls).__new__(cls, verb, target, data, label)
 
+    @classmethod
+    def from_dict(cls, d):
+        return cls(d['verb'], d['target'], d.get('data', None), d.get('label', None))
+
     @staticmethod
     def _interpret_param(verb, parameter):
         if verb == 'switch':
@@ -180,7 +187,7 @@ class ScenariosManager(Loggable):
 
     @property
     def scenarios(self):
-        """ Returns the list of available scenarios, as pairs composed of the scenario name
+        """ Returns the list of available scenarios, as pairs composed of the scenario id
         and the scenario definition.
 
         The list is sorted by scenario names.
@@ -190,26 +197,38 @@ class ScenariosManager(Loggable):
         """
         return sorted(self._scenarios.items())
 
-    def get_scenario(self, name):
-        """ Returns a scenario given its name.
-        :param str name: the name of the requested scenario
+    def __contains__(self, name):
+        return name in self._scenarios
+
+    def get_scenario(self, id_):
+        """ Returns a scenario given its id.
+        :param str id_: the id of the requested scenario
         :return: the scenario
         :rtype: Scenario
         :raise: KeyError if not found
         """
-        return self._scenarios[name]
+        return self._scenarios[id_]
 
-    def add_scenario(self, name, scenario):
+    def add_scenario(self, id_, scenario):
         """ Adds a scenario to the directory
-        :param str name: the name under which the scenario is registered
+        :param str id_: the id under which the scenario is registered
         :param Scenario scenario: the scenario definition
         """
-        if not name or not scenario:
-            raise ValueError("parameter 'name' and 'scenario' are mandatory")
+        if not id_ or not scenario:
+            raise ValueError("parameter 'id_' and 'scenario' are mandatory")
         if not isinstance(scenario, Scenario):
             raise TypeError("parameter 'scenario' type mismatch")
 
-        self._scenarios[name] = scenario
+        self._scenarios[id_] = scenario
+
+    def remove_scenario(self, id_):
+        """ Removes a scenario from the directory
+        :param str id_: the id of the scenario to be removed
+        :raise: KeyError if not found
+        """
+        if not id_:
+            raise ValueError("parameter 'id_' is mandatory")
+        del self._scenarios[id_]
 
     def load_scenarios(self, path=None):
         """ Loads the scenario definitions from a given file.

@@ -46,11 +46,14 @@ class BaseHandler(WSHandler):
 
 class GetAvailableScenarios(BaseHandler):
     """ Returns the list of available automation scenarios.
+
+    The result is a list of pairs (id, label), wrapped in a dictionary keyed by "scenarios" for
+    security sake.
     """
     def do_get(self):
         result = [
-            {'name': name, 'label': sysutils.to_unicode(scenario.label)}
-            for name, scenario in self._scenarios_mgr.scenarios
+            (scen_id, sysutils.to_unicode(scenario.label))
+            for scen_id, scenario in self._scenarios_mgr.scenarios
         ]
         self.write({'scenarios': result})
 
@@ -58,23 +61,23 @@ class GetAvailableScenarios(BaseHandler):
 class ScenarioSettings(BaseHandler):
     """ Read and write access to the configuration parameters of an automation scenario.
     """
-    def do_get(self, scenario_name):
+    def do_get(self, scen_id):
         try:
-            scenario = self._scenarios_mgr.get_scenario(scenario_name)
+            scenario = self._scenarios_mgr.get_scenario(scen_id)
             self.write(scenario.as_dict())
         except KeyError:
             self.set_status(404)
             self.write({
-                'message': 'scenario not found : %s' % scenario_name
+                'message': 'scenario not found : %s' % scen_id
             })
 
-    def do_post(self, scenario_name):
+    def do_post(self, scen_id):
         try:
-            scenario = self._scenarios_mgr.get_scenario(scenario_name)
+            scenario = self._scenarios_mgr.get_scenario(scen_id)
         except KeyError:
             self.set_status(404)
             self.write({
-                'message': 'scenario not found : %s' % scenario_name
+                'message': 'scenario not found : %s' % scen_id
             })
         else:
             try:
@@ -88,26 +91,29 @@ class ScenarioSettings(BaseHandler):
                 scenario.update(new_settings)
                 self._scenarios_mgr.save_scenarios()
 
-    def put(self, scenario_name):
-        if scenario_name in self._scenarios_mgr:
+    def put(self, scen_id):
+        if scen_id in self._scenarios_mgr:
             self.set_status(400)
             self.write({
-                'message': 'duplicate scenario name (%s)' % scenario_name
+                'message': 'duplicate scenario name (%s)' % scen_id
             })
 
         else:
             new_settings = json.loads(self.request.body)
-            scenario = Scenario(new_settings['label'], actions=[BasicAction.from_dict(d) for d in new_settings['actions']])
-            self._scenarios_mgr.add_scenario(scenario_name, scenario)
+            scenario = Scenario(
+                new_settings[Scenario.KEY_LABEL],
+                actions=[BasicAction.from_dict(d) for d in new_settings[Scenario.KEY_ACTIONS]]
+            )
+            self._scenarios_mgr.add_scenario(scen_id, scenario)
             self._scenarios_mgr.save_scenarios()
 
-    def delete(self, scenario_name):
+    def delete(self, scen_id):
         try:
-            self._scenarios_mgr.remove_scenario(scenario_name)
+            self._scenarios_mgr.remove_scenario(scen_id)
         except KeyError:
             self.set_status(404)
             self.write({
-                'message': 'scenario not found : %s' % scenario_name
+                'message': 'scenario not found : %s' % scen_id
             })
         else:
             self._scenarios_mgr.save_scenarios()
@@ -124,13 +130,13 @@ class ScenarioExecution(BaseHandler):
         if not self._evtmgr:
             raise ValueError('no event manager provided')
 
-    def do_get(self, scenario_name):
+    def do_get(self, scen_id):
         try:
-            scenario = self._scenarios_mgr.get_scenario(scenario_name)
+            scenario = self._scenarios_mgr.get_scenario(scen_id)
         except KeyError:
             self.set_status(404)
             self.write({
-                'message': 'scenario not found : %s' % scenario_name
+                'message': 'scenario not found : %s' % scen_id
             })
         else:
             scenario.execute(self._evtmgr)
@@ -140,6 +146,6 @@ _handlers_initparms = {}
 
 handlers = [
     (r"/scenarios", GetAvailableScenarios, _handlers_initparms),
-    (r"/scenario/(?P<scenario_name>[^/]+)/settings", ScenarioSettings, _handlers_initparms),
-    (r"/scenario/(?P<scenario_name>[^/]+)/execute", ScenarioExecution, _handlers_initparms),
+    (r"/scenario/(?P<scen_id>[^/]+)/settings", ScenarioSettings, _handlers_initparms),
+    (r"/scenario/(?P<scen_id>[^/]+)/execute", ScenarioExecution, _handlers_initparms),
 ]
