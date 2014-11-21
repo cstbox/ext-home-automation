@@ -25,6 +25,8 @@ class BaseTestCase(unittest.TestCase, Loggable):
 
 
 class TestScenario(BaseTestCase):
+    JSON_VALUE_1 = json.dumps({"value": 1})
+
     def setUp(self):
         super(TestScenario, self).setUp()
         self.evtmgr = MockUpEventManager()
@@ -33,19 +35,19 @@ class TestScenario(BaseTestCase):
     def test01_execute_action(self):
         action = BasicAction('switch', 'kitchen', 1)
         action.execute(self.evtmgr)
-        self.assertEqual(self.evtmgr.last_event, ('switch', 'kitchen', 1))
+        self.assertEqual(self.evtmgr.last_event, ('switch', 'kitchen', self.JSON_VALUE_1))
 
     def test02_add_action(self):
-        self.scenario.add_action(BasicAction('switch', 'kitchen', 1))
+        self.scenario.add_action(BasicAction('switch', 'kitchen', {'value': 1}))
         self.scenario.execute(self.evtmgr)
-        self.assertEqual(self.evtmgr.last_event, ('switch', 'kitchen', 1))
+        self.assertEqual(self.evtmgr.last_event, ('switch', 'kitchen', self.JSON_VALUE_1))
 
     def test03_sequence(self):
         self.scenario.add_action(BasicAction('switch', 'kitchen', 0))
         self.scenario.add_action(BasicAction('switch', 'living', 0))
         self.scenario.add_action(BasicAction('switch', 'bedroom', 1))
         self.scenario.execute(self.evtmgr)
-        self.assertEqual(self.evtmgr.last_event, ('switch', 'bedroom', 1))
+        self.assertEqual(self.evtmgr.last_event, ('switch', 'bedroom', self.JSON_VALUE_1))
         self.assertEqual(self.evtmgr.events_count, 3)
 
     def test04_query(self):
@@ -70,7 +72,7 @@ class TestScenario(BaseTestCase):
         d = {
             "label": "test scenario 01",
             "actions": [
-                {"label": "switch off living lights", "verb": "switch", "target": "living", "data": 0},
+                {"label": "switch off living lights", "verb": "switch", "target": "living", "data": {"value": 0}},
                 {"label": "dim bedroom lights", "verb": "dim", "target": "bedroom", "data": 50}
             ]
         }

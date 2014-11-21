@@ -28,6 +28,7 @@ from collections import namedtuple
 
 from pycstbox.evtmgr import EventManagerObject
 from pycstbox.log import Loggable
+from pycstbox.events import DataKeys
 
 
 class Scenario(Loggable):
@@ -131,12 +132,16 @@ class BasicAction(namedtuple('BasicAction', 'verb target data label')):
 
      Actions are executed by emitting the associated control event, using
      the verb and target set at creation time
+
+     The data attribute can be either a simple value, or a dictionary as
+     defined for events (see :py:class:`pycstbox.events.BasicEvent).
     """
     def __new__(cls, verb, target, data=None, label=None):
         """
         :param str verb: the type of the event emitted to realize the action
         :param str target: identification of the target device
         :param data: the data for the action if any
+        :type data: str or dict
         :param str label: an optional human friendly label attached to the action
         """
         if not verb or not target:
@@ -151,6 +156,8 @@ class BasicAction(namedtuple('BasicAction', 'verb target data label')):
 
     @staticmethod
     def _interpret_param(verb, parameter):
+        if isinstance(parameter, dict):
+            parameter = parameter.get(DataKeys.VALUE, '??')
         if verb == 'switch':
             return 'on' if parameter else 'off'
         elif verb == 'dim':
@@ -165,7 +172,12 @@ class BasicAction(namedtuple('BasicAction', 'verb target data label')):
         :param EventManagerObject event_manager: the event manager used for sending
         the action event
         """
-        event_manager.emitEvent(self.verb, self.target, str(self.data))
+        # convert the action data as a event data dictionary if not already the case
+        if isinstance(self.data, dict):
+            payload = self.data
+        else:
+            payload = {DataKeys.VALUE: self.data}
+        event_manager.emitEvent(self.verb, self.target, json.dumps(payload))
 
     def __str__(self):
         return("%s(%s, %s, %s)" %
