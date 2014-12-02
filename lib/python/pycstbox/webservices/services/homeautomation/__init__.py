@@ -130,6 +130,9 @@ class ScenarioExecution(BaseHandler):
         if not self._evtmgr:
             raise ValueError('no event manager provided')
 
+    def do_post(self, scen_id):
+        self.do_get(scen_id)
+
     def do_get(self, scen_id):
         try:
             scenario = self._scenarios_mgr.get_scenario(scen_id)
