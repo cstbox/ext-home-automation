@@ -11,7 +11,6 @@ MODULE_NAME=ext-home-automation
 include $(CSTBOX_DEVEL_HOME)/lib/makefile-dist.mk
 
 copy_files: \
-	copy_python_files \
-	copy_etc_files
+	copy_python_files 
 
 
