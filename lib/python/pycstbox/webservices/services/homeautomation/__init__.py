@@ -52,7 +52,7 @@ class GetAvailableScenarios(BaseHandler):
     """
     def do_get(self):
         result = [
-            (scen_id, sysutils.to_unicode(scenario.label))
+            {'id': scen_id, 'label': sysutils.to_unicode(scenario.label)}
             for scen_id, scenario in self._scenarios_mgr.scenarios
         ]
         self.write({'scenarios': result})
