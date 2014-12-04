@@ -52,7 +52,7 @@ class GetAvailableScenarios(BaseHandler):
     """
     def do_get(self):
         result = [
-            {'id': scen_id, 'label': sysutils.to_unicode(scenario.label)}
+            {'id': scen_id, 'label': sysutils.to_unicode(scenario.label), 'verb': sysutils.to_unicode(scenario.ui_verb)}
             for scen_id, scenario in self._scenarios_mgr.scenarios
         ]
         self.write({'scenarios': result})
@@ -101,8 +101,9 @@ class ScenarioSettings(BaseHandler):
         else:
             new_settings = json.loads(self.request.body)
             scenario = Scenario(
-                new_settings[Scenario.KEY_LABEL],
-                actions=[BasicAction.from_dict(d) for d in new_settings[Scenario.KEY_ACTIONS]]
+                label=new_settings[Scenario.KEY_LABEL],
+                actions=[BasicAction.from_dict(d) for d in new_settings[Scenario.KEY_ACTIONS]],
+                ui_verb=new_settings[Scenario.KEY_UI_VERB]
             )
             self._scenarios_mgr.add_scenario(scen_id, scenario)
             self._scenarios_mgr.save_scenarios()
