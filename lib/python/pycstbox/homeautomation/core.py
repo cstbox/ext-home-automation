@@ -38,20 +38,29 @@ class Scenario(Loggable):
     """
     KEY_LABEL = 'label'
     KEY_ACTIONS = 'actions'
+    KEY_UI_VERB = 'verb'
 
-    def __init__(self, label, actions=None):
+    DEFAULT_VERB = 'Execute'
+
+    def __init__(self, label, actions=None, ui_verb=None):
         """
         :param str label: a human readable label
         :param actions: the list of actions of the scenario
         :type actions: list of [BasicAction]
+        :param str ui_verb: the verb to be displayed on the UI
         """
         self._label = label
         self._actions = actions[:] if actions else []
+        self._ui_verb = ui_verb
         super(Scenario, self).__init__()
 
     @property
     def label(self):
         return self._label
+
+    @property
+    def ui_verb(self):
+        return self._ui_verb
 
     @property
     def actions(self):
@@ -100,7 +109,8 @@ class Scenario(Loggable):
     def as_dict(self):
         return {
             self.KEY_LABEL: self._label,
-            self.KEY_ACTIONS: [a._asdict() for a in self._actions]
+            self.KEY_ACTIONS: [a._asdict() for a in self._actions],
+            self.KEY_UI_VERB: self.ui_verb
         }
 
     def update(self, d):
@@ -113,8 +123,9 @@ class Scenario(Loggable):
 
     @classmethod
     def from_dict(cls, d):
-        label = d['label']
-        actions_cfg = d['actions']
+        label = d[cls.KEY_LABEL]
+        ui_verb = d.get(cls.KEY_UI_VERB, cls.DEFAULT_VERB)
+        actions_cfg = d[cls.KEY_ACTIONS]
         actions = [
             BasicAction(
                 action['verb'],
@@ -123,7 +134,7 @@ class Scenario(Loggable):
                 action.get('label', None)
             ) for action in actions_cfg
         ]
-        return Scenario(label=label, actions=actions)
+        return Scenario(label=label, actions=actions, ui_verb=ui_verb)
 
 
 class BasicAction(namedtuple('BasicAction', 'verb target data label')):
