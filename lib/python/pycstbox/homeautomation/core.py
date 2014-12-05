@@ -38,7 +38,7 @@ class Scenario(Loggable):
     """
     KEY_LABEL = 'label'
     KEY_ACTIONS = 'actions'
-    KEY_UI_VERB = 'verb'
+    KEY_UI_VERB = 'ui_verb'
 
     DEFAULT_VERB = 'Execute'
 
@@ -79,7 +79,7 @@ class Scenario(Loggable):
             raise TypeError('action parameter type mismatch')
         self._actions.append(action)
 
-    def update(self, actions):
+    def update_actions(self, actions):
         """ Replaces the action sequence by a copy of the provided one.
         :param actions: the new list of actions
         :type actions: list of [BasicAction]
@@ -260,6 +260,7 @@ class ScenariosManager(Loggable):
         {
             <scenario_name> : {
                 "label" : "...",
+                "ui_verb": "...",
                 "actions" : [
                     {"label": "...", "label": "...", "verb": "....", "target": "...", "data": "..."},
                     ...
