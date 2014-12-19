@@ -71,7 +71,7 @@ class ScenarioSettings(BaseHandler):
                 'message': 'scenario not found : %s' % scen_id
             })
 
-    def do_post(self, scen_id):
+    def do_put(self, scen_id):
         try:
             scenario = self._scenarios_mgr.get_scenario(scen_id)
         except KeyError:
@@ -91,22 +91,22 @@ class ScenarioSettings(BaseHandler):
                 scenario.update(new_settings)
                 self._scenarios_mgr.save_scenarios()
 
-    def put(self, scen_id):
-        if scen_id in self._scenarios_mgr:
-            self.set_status(400)
-            self.write({
-                'message': 'duplicate scenario name (%s)' % scen_id
-            })
-
-        else:
-            new_settings = json.loads(self.request.body)
-            scenario = Scenario(
-                label=new_settings[Scenario.KEY_LABEL],
-                actions=[BasicAction.from_dict(d) for d in new_settings[Scenario.KEY_ACTIONS]],
-                ui_verb=new_settings[Scenario.KEY_UI_VERB]
-            )
-            self._scenarios_mgr.add_scenario(scen_id, scenario)
-            self._scenarios_mgr.save_scenarios()
+    # def put(self, scen_id):
+    #     if scen_id in self._scenarios_mgr:
+    #         self.set_status(400)
+    #         self.write({
+    #             'message': 'duplicate scenario name (%s)' % scen_id
+    #         })
+    #
+    #     else:
+    #         new_settings = json.loads(self.request.body)
+    #         scenario = Scenario(
+    #             label=new_settings[Scenario.KEY_LABEL],
+    #             actions=[BasicAction.from_dict(d) for d in new_settings[Scenario.KEY_ACTIONS]],
+    #             ui_verb=new_settings[Scenario.KEY_UI_VERB]
+    #         )
+    #         self._scenarios_mgr.add_scenario(scen_id, scenario)
+    #         self._scenarios_mgr.save_scenarios()
 
     def delete(self, scen_id):
         try:
